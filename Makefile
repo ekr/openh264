@@ -39,6 +39,8 @@ include build/platform-$(OS).mk
 CFLAGS += -DNO_DYNAMIC_VP
 LDFLAGS +=
 
+FIREFOX_DIR=/Users/ekr/dev/gecko/gmp
+
 
 #### No user-serviceable parts below this line
 ifneq ($(V),Yes)
@@ -85,6 +87,9 @@ H264ENC_DEPS = $(LIBPREFIX)encoder.$(LIBSUFFIX) $(LIBPREFIX)processing.$(LIBSUFF
 CODEC_UNITTEST_LDFLAGS = -L. -lgtest -ldecoder -lcrypto -lencoder -lprocessing -lcommon
 CODEC_UNITTEST_DEPS = $(LIBPREFIX)gtest.$(LIBSUFFIX) $(LIBPREFIX)decoder.$(LIBSUFFIX) $(LIBPREFIX)encoder.$(LIBSUFFIX) $(LIBPREFIX)processing.$(LIBSUFFIX) $(LIBPREFIX)common.$(LIBSUFFIX)
 
+MODULE_INCLUDES = -I$(FIREFOX_DIR)/content/media/gmp/gmp-api $(ENCODER_INCLUDES) $(DECODER_INCLUDES)
+MODULE_CFLAGS = -arch x86_64 -std=c++11
+
 .PHONY: test gtest-bootstrap clean
 
 all:	libraries binaries
@@ -94,6 +99,7 @@ clean:
 
 gtest-bootstrap:
 	svn co https://googletest.googlecode.com/svn/trunk/ gtest
+
 
 ifeq ($(HAVE_GTEST),Yes)
 test: codec_unittest$(EXEEXT)
@@ -108,20 +114,25 @@ include codec/common/targets.mk
 include codec/decoder/targets.mk
 include codec/encoder/targets.mk
 include codec/processing/targets.mk
+include module/targets.mk
 
 ifneq (android, $(OS))
 include codec/console/dec/targets.mk
 include codec/console/enc/targets.mk
 endif
 
-libraries: $(LIBPREFIX)wels.$(LIBSUFFIX) $(LIBPREFIX)wels.$(SHAREDLIBSUFFIX)
-LIBRARIES += $(LIBPREFIX)wels.$(LIBSUFFIX) $(LIBPREFIX)wels.$(SHAREDLIBSUFFIX)
+libraries: $(LIBPREFIX)wels.$(LIBSUFFIX) $(LIBPREFIX)wels.$(SHAREDLIBSUFFIX) $(LIBPREFIX)openh264.$(SHAREDLIBSUFFIX)
+LIBRARIES += $(LIBPREFIX)wels.$(LIBSUFFIX) $(LIBPREFIX)wels.$(SHAREDLIBSUFFIX) $(LIBPREFIX)openh264.$(SHAREDLIBSUFFIX)
 
 $(LIBPREFIX)wels.$(LIBSUFFIX): $(ENCODER_OBJS) $(DECODER_OBJS) $(PROCESSING_OBJS) $(COMMON_OBJS)
 	$(QUIET)rm -f $@
 	$(QUIET_AR)$(AR) $(AR_OPTS) $+
 
 $(LIBPREFIX)wels.$(SHAREDLIBSUFFIX): $(ENCODER_OBJS) $(DECODER_OBJS) $(PROCESSING_OBJS) $(COMMON_OBJS)
+	$(QUIET)rm -f $@
+	$(QUIET_CXX)$(CXX) $(SHARED) $(LDFLAGS) $(CXX_LINK_O) $+ $(SHLDFLAGS)
+
+$(LIBPREFIX)openh264.$(SHAREDLIBSUFFIX): $(MODULE_OBJS) $(ENCODER_OBJS) $(DECODER_OBJS) $(PROCESSING_OBJS) $(COMMON_OBJS)
 	$(QUIET)rm -f $@
 	$(QUIET_CXX)$(CXX) $(SHARED) $(LDFLAGS) $(CXX_LINK_O) $+ $(SHLDFLAGS)
 
