@@ -163,8 +163,13 @@ class OpenH264VideoEncoder : public GMPVideoEncoder
     param.iUsageType = CAMERA_VIDEO_REAL_TIME;
     param.iPicWidth = codecSettings.mWidth;
     param.iPicHeight = codecSettings.mHeight;
-    param.iTargetBitrate =
-        (codecSettings.mStartBitrate + codecSettings.mMaxBitrate) * 500;
+    param.iTargetBitrate = codecSettings.mMinBitrate * 1000;
+    GMPLOG(GL_INFO, "Initializing Bit Rate at: Start: "
+           << codecSettings.mStartBitrate
+           << "; Min: "
+           << codecSettings.mMinBitrate
+           << "; Max: "
+           << codecSettings.mMaxBitrate);
     
     param.iRCMode = RC_BITRATE_MODE;
 
@@ -268,7 +273,7 @@ class OpenH264VideoEncoder : public GMPVideoEncoder
 
     switch (encoded.eOutputFrameType) {
       case videoFrameTypeIDR:
-        encoded_type = kGMPDeltaFrame;
+        encoded_type = kGMPKeyFrame;
         has_frame = true;
         break;
       case videoFrameTypeI:
