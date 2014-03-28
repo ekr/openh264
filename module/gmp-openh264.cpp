@@ -28,6 +28,46 @@
 #define PUBLIC_FUNC
 #endif
 
+#if defined(__clang__)
+#  ifndef __has_extension
+#    define __has_extension __has_feature
+#  endif
+
+#  if __has_extension(cxx_override_control)
+#    define GMP_HAVE_OVERRIDE
+#  endif
+
+#  if __has_extension(cxx_nullptr)
+#    define GMP_HAVE_NULLPTR
+#  endif
+
+#elif defined(__GNUC__)
+#  if defined(__GXX_EXPERIMENTAL_CXX0X__) || __cplusplus >= 201103L
+#    if (__GNU_C__ >=4)
+#      if (__GNU_C_MINOR__ >= 7)
+#        define GMP_HAVE_OVERRIDE
+#      endif
+#      if (__GNU_C_MINOR__ >= 6)
+#        define GMP_HAVE_NULLPTR
+#      endif
+#    endif
+#  endif
+
+#elif defined(_MSC_VER)
+#  define GMP_HAVE_OVERRIDE
+#  define GMP_HAVE_NULLPTR
+#endif
+
+#if defined(GMP_HAVE_OVERRIDE)
+#  define GMP_OVERRIDE override
+#else
+#  define GMP_OVERRIDE
+#endif
+
+#if !defined (GMP_HAVE_NULLPTR)
+#  define nullptr __null
+#endif
+
 static int g_log_level = 0;
 
 #define GMPLOG(l, x) do { \
@@ -134,7 +174,7 @@ class OpenH264VideoEncoder : public GMPVideoEncoder
   virtual GMPVideoErr InitEncode(const GMPVideoCodec& codecSettings,
                                  GMPEncoderCallback* callback,
                                  int32_t numberOfCores,
-                                 uint32_t maxPayloadSize) override {
+                                 uint32_t maxPayloadSize) GMP_OVERRIDE {
     GMPErr err = g_platform_api->createthread(&worker_thread_);
     if (err != GMPNoErr) {
       GMPLOG(GL_ERROR, "Couldn't create new thread");
@@ -208,7 +248,7 @@ class OpenH264VideoEncoder : public GMPVideoEncoder
 
   virtual GMPVideoErr Encode(GMPVideoi420Frame* inputImage,
                              const GMPCodecSpecificInfo& codecSpecificInfo,
-                             const std::vector<GMPVideoFrameType>* frameTypes) override {
+                             const std::vector<GMPVideoFrameType>* frameTypes) GMP_OVERRIDE {
     GMPLOG(GL_DEBUG,
            __FUNCTION__
            << " size="
@@ -372,12 +412,12 @@ class OpenH264VideoEncoder : public GMPVideoEncoder
     stats_.FrameOut();
   }
 
-  virtual GMPVideoErr SetChannelParameters(uint32_t aPacketLoss, uint32_t aRTT) override {
+  virtual GMPVideoErr SetChannelParameters(uint32_t aPacketLoss, uint32_t aRTT) GMP_OVERRIDE {
     printf("%s\n", __PRETTY_FUNCTION__);
     return GMPVideoNoErr;
   }
 
-  virtual GMPVideoErr SetRates(uint32_t aNewBitRate, uint32_t aFrameRate) override {
+  virtual GMPVideoErr SetRates(uint32_t aNewBitRate, uint32_t aFrameRate) GMP_OVERRIDE {
     printf("%s\n", __PRETTY_FUNCTION__);
     GMPLOG(GL_INFO, "[SetRates] Begin with: "
            << aNewBitRate << " , "<< aFrameRate);
@@ -442,12 +482,12 @@ class OpenH264VideoEncoder : public GMPVideoEncoder
     return GMPVideoNoErr;
   }
 
-  virtual GMPVideoErr SetPeriodicKeyFrames(bool aEnable) override {
+  virtual GMPVideoErr SetPeriodicKeyFrames(bool aEnable) GMP_OVERRIDE {
     printf("%s\n", __PRETTY_FUNCTION__);
     return GMPVideoNoErr;
   }
 
-  virtual void EncodingComplete() override {
+  virtual void EncodingComplete() GMP_OVERRIDE {
     printf("%s\n", __PRETTY_FUNCTION__);
     delete this;
   }
@@ -475,7 +515,7 @@ public:
 
   virtual GMPVideoErr InitDecode(const GMPVideoCodec& codecSettings,
                                  GMPDecoderCallback* callback,
-                                 int32_t coreCount) override {
+                                 int32_t coreCount) GMP_OVERRIDE {
     GMPLOG(GL_INFO, "InitDecode");
 
     GMPErr err = g_platform_api->createthread(&worker_thread_);
@@ -513,7 +553,7 @@ public:
   virtual GMPVideoErr Decode(GMPVideoEncodedFrame* inputFrame,
                              bool missingFrames,
                              const GMPCodecSpecificInfo& codecSpecificInfo,
-                             int64_t renderTimeMs = -1) override {
+                             int64_t renderTimeMs = -1) GMP_OVERRIDE {
     GMPLOG(GL_DEBUG, __FUNCTION__
            << "Decoding frame size=" << inputFrame->Size()
            << " timestamp=" << inputFrame->TimeStamp());
@@ -528,17 +568,17 @@ public:
     return GMPVideoNoErr;
   }
 
-  virtual GMPVideoErr Reset() override {
+  virtual GMPVideoErr Reset() GMP_OVERRIDE {
     printf("%s\n", __PRETTY_FUNCTION__);
     return GMPVideoNoErr;
   }
 
-  virtual GMPVideoErr Drain() override {
+  virtual GMPVideoErr Drain() GMP_OVERRIDE {
     printf("%s\n", __PRETTY_FUNCTION__);
     return GMPVideoNoErr;
   }
 
-  virtual void DecodingComplete() override {
+  virtual void DecodingComplete() GMP_OVERRIDE {
     printf("%s\n", __PRETTY_FUNCTION__);
     delete this;
   }
