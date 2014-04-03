@@ -99,9 +99,6 @@ CODEC_UNITTEST_LDFLAGS = -L. $(call LINK_LIB,gtest) $(call LINK_LIB,decoder) $(c
 CODEC_UNITTEST_DEPS = $(LIBPREFIX)gtest.$(LIBSUFFIX) $(LIBPREFIX)decoder.$(LIBSUFFIX) $(LIBPREFIX)encoder.$(LIBSUFFIX) $(LIBPREFIX)processing.$(LIBSUFFIX) $(LIBPREFIX)common.$(LIBSUFFIX)
 
 MODULE_INCLUDES = -I$(FIREFOX_DIR)/content/media/gmp/gmp-api -I$(FIREFOX_OBJ)/dist/include/nspr $(ENCODER_INCLUDES) $(DECODER_INCLUDES)
-ifeq ($(OS), darwin)
-MODULE_CFLAGS = -arch x86_64 -std=c++11
-endif
 
 .PHONY: test gtest-bootstrap clean
 
