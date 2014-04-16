@@ -208,7 +208,7 @@ class OpenH264VideoEncoder : public GMPVideoEncoder
 
   virtual GMPVideoErr Encode(GMPVideoi420Frame* inputImage,
                              const GMPCodecSpecificInfo& codecSpecificInfo,
-                             const std::vector<GMPVideoFrameType>* frameTypes) override {
+                             const std::vector<GMPVideoFrameType>& frameTypes) override {
     GMPLOG(GL_DEBUG,
            __FUNCTION__
            << " size="
@@ -219,8 +219,8 @@ class OpenH264VideoEncoder : public GMPVideoEncoder
 #if 0
     // TODO(josh): this is empty.
 
-    //    assert(!frameTypes->empty());
-    if (frameTypes->empty()) {
+    //    assert(!frameTypes.empty());
+    if (frameTypes.empty()) {
       GMPLOG(GL_ERROR, "No frame types provided");
       return GMPVideoGenericErr;
     }
@@ -230,7 +230,7 @@ class OpenH264VideoEncoder : public GMPVideoEncoder
         this, &OpenH264VideoEncoder::Encode_w,
         inputImage,
 #if 0
-        (*frameTypes)[0])));
+        frameTypes[0]));
 #else
         kGMPKeyFrame));
 #endif
