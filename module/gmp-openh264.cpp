@@ -94,7 +94,7 @@ class FrameStats {
       return;
 
     if (!(frames_in_ % 10)) {
-      GMPLOG(GL_CRIT, type_ << ": " << now << " Frame count "
+      GMPLOG(GL_INFO, type_ << ": " << now << " Frame count "
           << frames_in_
           << "(" << (frames_in_ / (now - start_time_)) << "/"
           << (30 / (now - last_time_)) << ")"
@@ -208,7 +208,8 @@ class OpenH264VideoEncoder : public GMPVideoEncoder
 
   virtual GMPVideoErr Encode(GMPVideoi420Frame* inputImage,
                              const GMPCodecSpecificInfo& codecSpecificInfo,
-                             const std::vector<GMPVideoFrameType>* frameTypes) override {
+                             const std::vector<GMPVideoFrameType>& frameTypes)
+      override {
     GMPLOG(GL_DEBUG,
            __FUNCTION__
            << " size="
@@ -216,24 +217,17 @@ class OpenH264VideoEncoder : public GMPVideoEncoder
 
     stats_.FrameIn();
 
-#if 0
     // TODO(josh): this is empty.
-
-    //    assert(!frameTypes->empty());
-    if (frameTypes->empty()) {
+    assert(!frameTypes.empty());
+    if (frameTypes.empty()) {
       GMPLOG(GL_ERROR, "No frame types provided");
       return GMPVideoGenericErr;
     }
-#endif
 
     worker_thread_->Post(WrapTask(
-        this, &OpenH264VideoEncoder::Encode_w,
-        inputImage,
-#if 0
-        (*frameTypes)[0])));
-#else
-        kGMPKeyFrame));
-#endif
+          this, &OpenH264VideoEncoder::Encode_w,
+          inputImage,
+          (frameTypes)[0]));
 
     return GMPVideoGenericErr;
   }
