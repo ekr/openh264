@@ -372,10 +372,8 @@ class OpenH264VideoEncoder : public GMPVideoEncoder
   }
 
   virtual GMPVideoErr SetRates(uint32_t aNewBitRate, uint32_t aFrameRate) override {
-    printf("%s\n", __PRETTY_FUNCTION__);
     GMPLOG(GL_INFO, "[SetRates] Begin with: "
            << aNewBitRate << " , "<< aFrameRate);
-    
     //update bitrate if needed
     const int32_t newBitRate = aNewBitRate*1000; //kbps->bps
     SBitrateInfo existEncoderBitRate;
