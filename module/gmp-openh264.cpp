@@ -209,11 +209,12 @@ class OpenH264VideoEncoder : public GMPVideoEncoder
                              const GMPCodecSpecificInfo& codecSpecificInfo,
                              const std::vector<GMPVideoFrameType>& frameTypes)
       override {
-    GMPLOG(GL_DEBUG,
-           __FUNCTION__
-           << " size="
-           << inputImage->Width() << "x" << inputImage->Height());
-
+    if(inputImage){
+      GMPLOG(GL_DEBUG,
+             __FUNCTION__
+             << " size="
+             << inputImage->Width() << "x" << inputImage->Height());
+    }
     stats_.FrameIn();
 
     // TODO(josh): this is empty.
@@ -233,8 +234,17 @@ class OpenH264VideoEncoder : public GMPVideoEncoder
 
   void Encode_w(GMPVideoi420Frame* inputImage,
                 GMPVideoFrameType frame_type) {
-    SFrameBSInfo encoded;
+    if(frame_type  == kGMPKeyFrame){
+      encoder_->ForceIntraFrame(true);
+      if(!inputImage)
+        return;
+    }
+    if(!inputImage){
+      GMPLOG(GL_ERROR, "no input image");
+      return;
+    }
 
+    SFrameBSInfo encoded;
     SSourcePicture src;
 
     src.iColorFormat = videoFormatI420;
